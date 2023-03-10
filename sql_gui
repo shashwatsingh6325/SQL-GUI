@@ -2,11 +2,9 @@ import tkinter as tk
 from tkinter import messagebox
 import sqlite3
 
-#creating gui window
 root=tk.Tk()
 root.title("Data entry")
 
-#creating labels and entry firls
 tk.Label(root,text="Name").grid(row=0,column=0)
 name_entry=tk.Entry(root)
 name_entry.grid(row=0,column=1)
@@ -23,37 +21,40 @@ tk.Label(root,text="Phone Number").grid(row=3,column=0)
 phone_entry=tk.Entry(root)
 phone_entry.grid(row=3,column=1)
 
-#create a function to store user input in the database
 def store_data():
-    name=name_entry.get()
-    age=age_entry.get()
-    address=address_entry.get()
-    phone=phone_entry.get()
+    name = name_entry.get()
+    age = age_entry.get()
+    address = address_entry.get()
+    phone = phone_entry.get()
 
     conn=sqlite3.connect("data.db")
     c=conn.cursor()
 
-    c.execute("""CREATE TABLE IF NOT EXITS users
-                      (
-                      name TEXT
-                      age INTEGER
-                      email TEXT
-                      phone TEXT
-                      )""")
+    c.execute("""CREATE TABLE IF NOT EXISTS users
+         (
+          name TEXT,
+          age TEXT,
+          address TEXT,
+          phone TEXT
+          )""")
+    
     c.execute("INSERT INTO users VALUES(?,?,?,?)",(name,age,address,phone))
     conn.commit()
     conn.close()
+
     messagebox.showinfo("success","data entered successfully")
+
 store_button = tk.Button(root, text="Store Data", command=store_data)
 store_button.grid(row=4, column=0)
+
 def show_data():
     conn=sqlite3.connect("data.db")
     c=conn.cursor()
-
-    c.execute("SELECT*FROM user")
+    c.execute("SELECT * FROM users")
     data = c.fetchall()
     conn.close()
     messagebox.showinfo("data",data)
+
 show_button=tk.Button(root,text="show data",command=show_data)
 show_button.grid(row=4,column=1)
 root.mainloop()
