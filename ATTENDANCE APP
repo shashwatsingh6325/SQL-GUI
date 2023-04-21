@@ -1,0 +1,61 @@
+import tkinter as tk
+import sqlite3
+
+class AttendanceApp(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Attendance App")
+        self.geometry("400x400")
+
+        # create a database connection
+        self.conn = sqlite3.connect('attendance.db')
+        self.cursor = self.conn.cursor()
+
+        # create a table for attendance records if it doesn't exist
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS attendance
+                            (id INTEGER PRIMARY KEY,
+                            name TEXT,
+                            present BOOLEAN)''')
+        self.conn.commit()
+
+        # create widgets
+        self.students = ['AYUSH', 'SHASHWAT', 'ADITYA', 'AAYUSHI', 'ARHAM', 'PARDHA', 'VISHAL', 'ABHAY', 'RATNESH', 'ABHINAV']
+        self.checkbox_vars = [tk.BooleanVar() for _ in range(10)]
+        self.checkbox_widgets = [tk.Checkbutton(self, text=student, variable=self.checkbox_vars[i]) for i, student in enumerate(self.students)]
+        for checkbox_widget in self.checkbox_widgets:
+            checkbox_widget.pack()
+
+        self.submit_button = tk.Button(self, text="Submit", command=self.submit_attendance)
+        self.submit_button.pack()
+
+        self.absentees_label = tk.Label(self, text="")
+        self.absentees_label.pack()
+
+    def delete_attendance_records(self):
+        # delete all records from the attendance table
+        self.cursor.execute("DELETE FROM attendance")
+        self.conn.commit()
+
+    def submit_attendance(self):
+        # clear absentees label
+        self.absentees_label.config(text="")
+
+        # delete previous attendance records
+        self.delete_attendance_records()
+
+        # insert attendance records into database
+        for i, student in enumerate(self.students):
+            present = self.checkbox_vars[i].get()
+            self.cursor.execute("INSERT INTO attendance (name, present) VALUES (?, ?)", (student, present))
+            self.conn.commit()
+
+        # get absentees
+        self.cursor.execute("SELECT name FROM attendance WHERE present=?", (False,))
+        absentees = [row[0] for row in self.cursor.fetchall()]
+        if absentees:
+            self.absentees_label.config(text="Absentees: " + ", ".join(absentees))
+        else:
+            self.absentees_label.config(text="No absentees")
+if __name__ == "__main__":
+    app = AttendanceApp()
+    app.mainloop()
